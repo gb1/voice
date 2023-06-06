@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:voice/new.dart';
 import 'package:vosk_flutter/vosk_flutter.dart';
 
 part 'voice.g.dart';
@@ -50,17 +51,44 @@ class Voice extends ConsumerWidget {
 
     final command = ref.watch(commandProvider);
 
-    return speechService.when(
-      data: (speechService) {
-        speechService.onResult().forEach((result) {
-          print(command);
-          ref.read(commandProvider.notifier).state = result;
-        });
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Voice'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            speechService.when(
+              data: (speechService) {
+                speechService.onPartial().forEach((result) {
+                  print("PARTIAL: " + result);
+                });
 
-        return Text(command);
-      },
-      loading: () => const CircularProgressIndicator(),
-      error: (error, stackTrace) => Text(error.toString()),
+                speechService.onResult().forEach((result) {
+                  print(command);
+                  ref.read(commandProvider.notifier).state = result;
+                });
+
+                return Text(command);
+              },
+              loading: () => const CircularProgressIndicator(),
+              error: (error, stackTrace) => Text(error.toString()),
+            ),
+            ElevatedButton(
+              child: Text("Next"),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => NewScreen(),
+                  ),
+                );
+              },
+            )
+          ],
+        ),
+      ),
     );
   }
 }
